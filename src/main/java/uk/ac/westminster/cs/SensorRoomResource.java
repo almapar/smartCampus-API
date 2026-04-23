@@ -36,18 +36,17 @@ public class SensorRoomResource {
     }
 
     @DELETE
-    @Path("/{roomId}")
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response deleteRoom(@PathParam("roomId") String roomId) {
-        Room room = DataStore.ROOMS.get(roomId);
-        if (room == null) {
-            return Response.status(Response.Status.NOT_FOUND).build();
-        }
-        if (room.getSensorIds() != null && !room.getSensorIds().isEmpty()) {
-            return Response.status(Response.Status.CONFLICT).entity("{\"error\": \"Cannot delete room: Sensors are still active.\"}").build();
+    @Path("/{id}")
+    public Response deleteRoom(@PathParam("id") String id) {
+        Room targetRoom = DataStore.ROOMS.get(id);
+
+        if (targetRoom != null) {
+            if (!targetRoom.getSensorIds().isEmpty()) {
+                throw new RoomNotEmptyException("Cannot delete room " + id + ". Sensors are still attached!");
+            }
+            DataStore.ROOMS.remove(id);
         }
 
-        DataStore.ROOMS.remove(roomId);
         return Response.noContent().build();
     }
 }
